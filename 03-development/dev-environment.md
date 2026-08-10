@@ -8,20 +8,32 @@
 | :---: | :---: | :--- |
 | Spring Boot 4 | 4.1.0 | - |
 | 서버 URL | https://start.spring.io | - |
-| 이름 | easyadj | - |
+| 이름 | { System 레포지토리명 } | - |
 | 프로젝트 위치 | 로컬 환경에서 개인적으로 설정 | - |
 | Java | 17 | - |
 | Gradle | Kotlin DSL | 8.7 |
 | 그룹명 | com.example | - |
-| 아티팩트 | easyadj | - |
-| 패키지명 | com.example.easyadj | - |
+| 아티팩트 | { System 레포지토리명 } | - |
+| 패키지명 | com.example.{ System 레포지토리명(하이폰 제외) } | - |
 | JDK | Amazon Corretto | 21.0.12 |
 | 패키지 생성 | Jar | - |
 | 구성 | Properties | - |
 
-> ⚠️ 위 표는 단일 프로젝트 기준으로 작성됐다. 지금은 [서비스가 3개](../02-design/architecture.md)이므로 이름·아티팩트·패키지명은 서비스별로 나뉜다.
->
-> 🚧 **미확정** — 명명 규칙을 정해야 한다. 예: 아티팩트 `easyadj-payment`, 패키지 `com.easyadj.payment`. 나머지(Spring Boot 4.1.0 / Java 17 / Gradle Kotlin DSL / JDK Corretto 21.0.12 / Jar / Properties)는 **3개 서비스 모두 동일하게** 맞춘다.
+> ⚠️ 위 표는 단일 프로젝트 기준으로 작성됐다. 지금은 [서비스가 3개](../02-design/architecture.md)이므로 이름·아티팩트·패키지명은 서비스별로 나뉜다. 나머지(Spring Boot 4.1.0 / Java 17 / Gradle Kotlin DSL / JDK Corretto 21.0.12 / Jar / Properties)는 **3개 서비스 모두 동일하게** 맞춘다.
+
+### 서비스별 명명 규칙
+
+**아티팩트명 = 레포명**, **패키지명 = `com.example.` + 아티팩트명에서 하이픈 제거.**
+
+Spring Initializr는 Group과 Artifact를 입력하면 Package name을 이 규칙대로 자동으로 채운다. **Package name 칸은 직접 수정하지 않는다.**
+
+| 서비스 | 레포 = Name = Artifact | Package | 메인 클래스 |
+|---|---|---|---|
+| 정산 | `driver-settlement-system` | `com.example.driversettlementsystem` | `DriverSettlementSystemApplication` |
+| 결제 | 🚧 미정 | 레포명 확정 시 위 규칙대로 | |
+| 원장 | 🚧 미정 | 레포명 확정 시 위 규칙대로 | |
+
+> 레포명을 바꿔도 `settings.gradle.kts`의 `rootProject.name`은 따라가지 않는다. 함께 고쳐야 산출물 jar 이름이 맞는다.
 
 ---
 
