@@ -14,10 +14,10 @@
 | [core-documents](https://github.com/Easy-ADJ/core-documents) | 프로젝트 문서 전용 (이 레포) | 전원 | private |
 | 🚧 결제 서버 | payment 서비스 | 김주엽 | 미생성 |
 | 🚧 원장 서버 | ledger 서비스 | 이치헌 | 미생성 |
-| 🚧 정산 서버 | settlement 서비스 | 허진수 | 미생성 |
+| [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) | settlement 서비스 | 허진수 | public |
 
-> **레포 이름 제안**: `payment-service` / `ledger-service` / `settlement-service`.
-> 문서 레포가 `easyadj-docs`가 아니라 `core-documents`인 것처럼, 조직 이름(`Easy-ADJ`)이 이미 접두사 역할을 하므로 레포명에 `easyadj-`를 반복하지 않는 게 일관적이다. 확정되면 이 표와 [links.md](./links.md)를 갱신한다.
+> **레포 이름**: 정산은 `driver-settlement-system`으로 확정됐다. 결제·원장은 🚧 미정 — 확정되면 이 표와 [links.md](./links.md), [dev-environment.md의 명명 규칙 표](../03-development/dev-environment.md#서비스별-명명-규칙)를 함께 갱신한다.
+> 문서 레포가 `easyadj-docs`가 아니라 `core-documents`인 것처럼, 조직 이름(`Easy-ADJ`)이 이미 접두사 역할을 하므로 레포명에 `easyadj-`를 반복하지 않는다.
 
 ---
 

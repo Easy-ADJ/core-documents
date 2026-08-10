@@ -11,7 +11,7 @@
 |---|---|---|
 | 결제 (payment) | 김주엽 | 🚧 미생성 |
 | 원장 (ledger) | 이치헌 | 🚧 미생성 |
-| 정산 (settlement) | 허진수 | 🚧 미생성 |
+| 정산 (settlement) | 허진수 | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) |
 | 문서 | 전원 | [core-documents](https://github.com/Easy-ADJ/core-documents) (이 레포) |
 
 > 서버는 나뉘었지만 DB는 하나입니다. **다른 서비스가 소유한 테이블에 직접 접근하지 않습니다** — 왜 그런지와 예외 절차는 [service-contracts.md §0](./02-design/service-contracts.md#0-테이블-직접-접근-금지)에 있습니다.

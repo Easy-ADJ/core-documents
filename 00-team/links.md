@@ -7,7 +7,7 @@
 | [core-documents](https://github.com/Easy-ADJ/core-documents) | 프로젝트 문서 (이 레포) | 전원 |
 | 🚧 미생성 | 결제 서버 | 김주엽 |
 | 🚧 미생성 | 원장 서버 | 이치헌 |
-| 🚧 미생성 | 정산 서버 | 허진수 |
+| [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) | 정산 서버 | 허진수 |
 
 - **진행 현황 보드**: 🚧 미생성 — **조직 레벨** Project로 만들어야 3개 레포 이슈가 한 보드에 모인다 ([이유](./github-workflow.md#5-github-projects-보드))
 - [project-java2](https://github.com/Daegu-SW-Pilot-4th/project-java2) — 구 조직(`Daegu-SW-Pilot-4th`)의 레포. 🚧 **존치 여부 확인 필요**

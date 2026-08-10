@@ -28,7 +28,7 @@
 |---|---|---|---|
 | 결제 (payment) | 김주엽 | 운행 종료 시 결제 청구, 멱등 처리, 취소/환불 | 🚧 미생성 |
 | 원장 (ledger) | 이치헌 | 이중기입 분개 기록, 잔액 계산, 정합성 검증 | 🚧 미생성 |
-| 정산 (settlement) | 허진수 | 일 단위 집계 배치, 정산 내역서, 대사 | 🚧 미생성 |
+| 정산 (settlement) | 허진수 | 일 단위 집계 배치, 정산 내역서, 대사 | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) |
 
 - 서비스 간 통신은 **동기 REST 호출**. 호출 관계와 계약은 [service-contracts.md](./service-contracts.md) 참조.
 - 서버 간 호출 대상 주소는 **환경변수로 주입**한다(하드코딩 금지). 변수 이름은 [dev-environment.md](../03-development/dev-environment.md) 참조.

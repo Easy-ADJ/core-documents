@@ -6,7 +6,7 @@
 | 항목 | 값 |
 |---|---|
 | 담당자 | 허진수 |
-| 레포 | 🚧 미생성 |
+| 레포 | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) |
 | 소유 테이블 | `settlement_batches`, `settlement_items` (+ Spring Batch 메타 테이블) |
 
 ---

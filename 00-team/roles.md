@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | 김주엽 | 결제 (payment) | 🚧 미생성 | [services/payment.md](../02-design/services/payment.md) | `trips`, `payments` |
 | 이치헌 | 원장 (ledger) | 🚧 미생성 | [services/ledger.md](../02-design/services/ledger.md) | `ledger_accounts`, `ledger_entries` |
-| 허진수 | 정산 (settlement) | 🚧 미생성 | [services/settlement.md](../02-design/services/settlement.md) | `settlement_batches`, `settlement_items` |
+| 허진수 | 정산 (settlement) | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) | [services/settlement.md](../02-design/services/settlement.md) | `settlement_batches`, `settlement_items` |
 
 ## 공동 소유
 
