@@ -1,0 +1,33 @@
+name: 🔧 문서 오류
+description: 오탈자·깨진 링크·사실과 다른 내용
+title: "[문서] "
+labels: ["fix"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: 위치
+      description: 파일 경로와 절·줄 번호를 적습니다.
+      placeholder: "00-team/github-workflow.md §4 55번째 줄"
+    validations:
+      required: true
+
+  - type: textarea
+    id: wrong
+    attributes:
+      label: 잘못된 내용
+      description: 지금 적혀 있는 그대로 붙입니다.
+      render: text
+      placeholder: 별도 템플릿 파일을 두지 않는 대신 아래 내용으로 본문을 구성한다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: correct
+    attributes:
+      label: 올바른 내용
+      description: 어떻게 바뀌어야 하는지 적습니다.
+      render: text
+      placeholder: 이슈 템플릿은 .github/ISSUE_TEMPLATE/ 에 있으며, New issue 시 자동으로 제시된다.
+    validations:
+      required: true

@@ -1,0 +1,44 @@
+name: ❓ 논의
+description: 팀 결정이 필요한 것 (회의 안건 후보)
+title: "[문서] "
+labels: ["question"]
+body:
+  - type: textarea
+    id: topic
+    attributes:
+      label: 논점
+      description: 무엇을 정해야 하는지 한두 문장으로 적습니다.
+      placeholder: DB 제품을 AWS Aurora로 갈지 Supabase로 갈지 정해야 한다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: options
+    attributes:
+      label: 선택지와 트레이드오프
+      description: 고를 수 있는 안과 각각의 대가를 적습니다. 선택지 없이 "어떻게 할까요"만 있으면 논의가 겉돕니다.
+      placeholder: |
+        | | (A) AWS Aurora | (B) Supabase |
+        |---|---|---|
+        | 비용 | 인스턴스 3개분 과금 | 무료 티어 3프로젝트 |
+        | 운영 | VPC·보안그룹 설정 필요 | 대시보드에서 즉시 |
+    validations:
+      required: true
+
+  - type: input
+    id: doc
+    attributes:
+      label: 결정을 반영할 문서
+      description: 결정되면 어느 문서를 고쳐야 하는지 미리 적어둡니다. 회의록에만 남으면 나중에 못 찾습니다.
+      placeholder: "02-design/architecture.md §5"
+    validations:
+      required: true
+
+  - type: textarea
+    id: deadline
+    attributes:
+      label: 언제까지 정해야 하나
+      description: 이 결정이 늦으면 무엇이 막히는지 적습니다.
+      placeholder: 08.15 회의. 이게 정해져야 각자 로컬 DB 셋업을 시작할 수 있다.
+    validations:
+      required: false

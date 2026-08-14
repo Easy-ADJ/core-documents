@@ -1,0 +1,53 @@
+name: 🗂️ 구조 변경
+description: 폴더 체계·파일 배치·문서 분할을 바꿔야 할 때
+title: "[문서] "
+labels: ["structure"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 무엇을
+      description: 바꾸려는 구조를 적습니다. 변경 전/후를 트리로 그리면 이해가 빠릅니다.
+      render: text
+      placeholder: |
+        변경 전                        변경 후
+        02-design/                     02-design/
+        └── services/                  ├── services/
+            ├── payment.md             └── contracts/
+            ├── ledger.md                  └── error-codes.md
+            └── settlement.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: 왜
+      description: 지금 구조의 어떤 점이 문제인지 적습니다.
+      placeholder: 에러 코드가 세 서비스 문서에 흩어져 있어 공통 코드를 한눈에 볼 수 없다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: 영향 범위
+      description: 옮기거나 이름이 바뀌는 파일, 깨질 링크를 적습니다.
+      placeholder: |
+        - services/*.md 3개의 에러 코드 절을 걷어냄
+        - 이 절들을 참조하는 README.md, service-contracts.md 링크 수정 필요
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        > 유효하지 않게 된 문서는 **삭제하지 말고** `archive/`로 옮기고 상단에 "현행 아님" 배너를 답니다.
+
+  - type: input
+    id: affected
+    attributes:
+      label: 합의가 필요한 사람
+      placeholder: "@김주엽 @이치헌"
+    validations:
+      required: false
