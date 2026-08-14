@@ -19,70 +19,75 @@
 | 패키지 생성 | Jar | - |
 | 구성 | Properties | - |
 
-> ⚠️ 위 표는 단일 프로젝트 기준으로 작성됐다. 지금은 [서비스가 3개](../02-design/architecture.md)이므로 이름·아티팩트·패키지명은 서비스별로 나뉜다. 나머지(Spring Boot 4.1.0 / Java 17 / Gradle Kotlin DSL / JDK Corretto 21.0.12 / Jar / Properties)는 **3개 서비스 모두 동일하게** 맞춘다.
+> 이름·아티팩트·패키지명은 [서비스가 3개](../02-design/architecture.md)이므로 서비스별로 나뉜다.<br/>
+> 나머지(Spring Boot 4.1.0 / Java 17 / Gradle Kotlin DSL / JDK Corretto 21.0.12 / Jar / Properties)는 <u>**3개 서비스 모두 동일하게**</u> 맞춘다.
 
 ### 서비스별 명명 규칙
 
-**아티팩트명 = 레포명**, **패키지명 = `com.example.` + 아티팩트명에서 하이픈 제거.**
+<u>**아티팩트명 = 레포명**</u>, <u>**패키지명 = `com.example.` + 아티팩트명에서 하이픈 제거.**</u>
 
-Spring Initializr는 Group과 Artifact를 입력하면 Package name을 이 규칙대로 자동으로 채운다. **Package name 칸은 직접 수정하지 않는다.**
+Spring Initializr는 Group과 Artifact를 입력하면 Package name을 이 규칙대로 자동으로 채운다.<br/>
+<u>**Package name 칸은 직접 수정하지 않는다.**</u>
 
 | 서비스 | 레포 = Name = Artifact | Package | 메인 클래스 |
 |---|---|---|---|
+| 결제 | `driver-payment-system` | `com.example.driverpaymentsystem` | `DriverPaymentSystemApplication` |
+| 원장 | `ledger-system` | `com.example.ledgersystem` | `LedgerSystemApplication` |
 | 정산 | `driver-settlement-system` | `com.example.driversettlementsystem` | `DriverSettlementSystemApplication` |
-| 결제 | 🚧 미정 | 레포명 확정 시 위 규칙대로 | |
-| 원장 | 🚧 미정 | 레포명 확정 시 위 규칙대로 | |
 
 > 레포명을 바꿔도 `settings.gradle.kts`의 `rootProject.name`은 따라가지 않는다. 함께 고쳐야 산출물 jar 이름이 맞는다.
 
 ---
 
-## 🗄️ 데이터베이스 — Supabase PostgreSQL
+## 🗄️ 데이터베이스 — 시스템별 PostgreSQL
 
-**인스턴스 1개를 3개 서비스가 공유한다.** 테이블 소유권과 접근 규칙은 [erd.md](../02-design/erd.md)와 [service-contracts.md §0](../02-design/service-contracts.md#0-테이블-직접-접근-금지)을 먼저 읽는다.
+<u>**시스템마다 DB 인스턴스를 하나씩 둔다.**</u> 각 서버는 자기 DB에만 접속한다.<br/>
+테이블 소유권과 접근 규칙은 [ERD 문서](../02-design/erd.md)와 [service-contracts.md §0](../02-design/service-contracts.md#0-테이블-직접-접근-금지)을 먼저 읽는다.
+
+- 🚧 DB 제품 미확정 — **AWS Aurora** 혹은 **Supabase**. 어느 쪽이든 <u>**3개 시스템이 같은 제품**</u>을 쓴다. ([architecture.md §5](../02-design/architecture.md#5-인프라))
 
 ### 접속 정보
 
-**연결 문자열·비밀번호·API 키를 이 문서나 코드에 적지 않는다.** 이 레포가 private이어도 마찬가지다 — 커밋된 비밀정보는 이력에 영구히 남는다.
+<u>**연결 문자열·비밀번호·API 키를 이 문서나 코드에 적지 않는다.**</u> 이 레포가 private이어도 마찬가지다 — 커밋된 비밀정보는 이력에 영구히 남는다.
 
 | 환경변수 | 내용 | 획득 경로 |
 |---|---|---|
-| `SPRING_DATASOURCE_URL` | JDBC 연결 문자열 | Supabase 대시보드 → Project Settings → Database |
+| `SPRING_DATASOURCE_URL` | JDBC 연결 문자열 | 자기 DB의 콘솔·대시보드 |
 | `SPRING_DATASOURCE_USERNAME` | DB 사용자 | 위와 동일 |
 | `SPRING_DATASOURCE_PASSWORD` | DB 비밀번호 | 위와 동일 |
 
-- 로컬에서는 IntelliJ 실행 구성의 환경변수 또는 `.env`(**반드시 `.gitignore`에 추가**)로 주입한다.
+- 각자 <u>**자기 서비스 DB의 접속 정보만**</u> 갖는다. 남의 DB 접속 정보를 요청하지도, 공유하지도 않는다.
+- 로컬에서는 IntelliJ 실행 구성의 환경변수 또는 `.env`(<u>**반드시 `.gitignore`에 추가**</u>)로 주입한다.
 - `application.properties`에는 `${SPRING_DATASOURCE_URL}` 형태의 참조만 둔다.
-- 🚧 실제 접속 정보 공유 경로를 정해야 한다(팀 DM / 비밀번호 관리 도구). 문서에는 적지 않는다.
+- 🚧 서버 간 호출 대상 주소도 환경변수로 주입한다. 변수 이름 규칙을 정해야 한다. (예: `LEDGER_API_BASE_URL`)
 
-### 커넥션 풀 ⚠️
+### 커넥션 풀
 
-서비스가 3개라 **HikariCP 풀도 3개가 열린다.** 서버당 기본 풀 크기가 10이면 최대 30개 연결이 Supabase 하나로 몰린다. Supabase는 플랜별 동시 연결 한도가 있어 넘기면 연결 거부가 난다.
+DB가 나뉘어 <u>**서버 하나가 자기 DB만 쓰므로 풀 경합이 없다.**</u> HikariCP 기본값(풀 크기 10)을 그대로 써도 된다.
 
-- 🚧 **서버당 풀 크기 상한**을 정해야 한다 (`spring.datasource.hikari.maximum-pool-size`)
-- 🚧 **Supabase 연결 풀러(Supavisor) 경유 여부** — 경유하면 연결 수를 아낄 수 있으나, transaction 모드에서는 prepared statement가 제한돼 JDBC 설정 조정이 필요하다. 직접 연결로 갈지 풀러로 갈지 정한 뒤 3개 서비스가 **같은 방식**을 쓴다
+- 부하 테스트에서 부족하면 그때 `spring.datasource.hikari.maximum-pool-size`를 올린다. 미리 튜닝하지 않는다.
+- 🚧 Supabase로 확정되는 경우에 한해, 연결 풀러(Supavisor) 경유 여부를 정한다. transaction 모드에서는 prepared statement가 제한돼 JDBC 설정 조정이 필요하다.
 
-### 스키마 마이그레이션 ⚠️
+### 스키마 마이그레이션
 
-DB가 공유라서 **3명이 각자 스키마를 바꾸면 서로의 로컬을 깨뜨린다.** 절차를 정해야 한다.
+DB가 나뉘어 <u>**서로의 스키마를 깨뜨릴 수 없다.**</u> 각자 자기 DB의 마이그레이션을 독립적으로 관리하며, Flyway 버전 번호도 충돌하지 않는다.
 
-- 🚧 **도구**: Flyway / Supabase 마이그레이션 / 대시보드에서 수동 SQL
-  - 서비스가 3개인데 Flyway를 각각 쓰면 버전 번호가 충돌한다. 서비스별 스키마를 분리하거나([erd.md §3](../02-design/erd.md#3-소유권을-무엇으로-표현할까)), 마이그레이션을 한 곳에서 관리해야 한다
-- 🚧 **절차**: 스키마를 바꾸기 전에 `schema` 라벨로 이슈를 열고 나머지 2명을 멘션한다 ([github-workflow.md §2](../00-team/github-workflow.md#2-이슈는-어디에-내나))
-- 🚧 **적용 순서**: 누가 언제 원격 DB에 적용하는지
+- 🚧 <u>**도구**</u>: Flyway / 콘솔에서 수동 SQL. DB가 독립이라 서비스마다 달라도 동작하지만, <u>**3개 서비스가 같은 도구**</u>를 쓰는 편이 문서·트러블슈팅이 쉽다.
+- 스키마를 바꾸기 전에 `schema` 라벨로 이슈를 연다. ([github-workflow.md §2](../00-team/github-workflow.md#2-이슈는-어디에))<br/>
+	DB는 나뉘었지만 스키마 변경은 <u>**그 테이블을 노출하는 API 응답을 바꾸므로**</u> 상대에게 영향이 간다.
 
-### 로컬 개발용 DB ⚠️
+### 로컬 개발용 DB
 
-🚧 공유 인스턴스 하나를 셋이 같이 쓰면 **서로의 테스트 데이터가 섞이고**, 한 명이 테이블을 비우면 다른 사람의 테스트가 깨진다. 선택지:
+DB가 나뉘어 <u>**서로의 테스트 데이터가 섞이지 않는다.**</u> 각자 자기 DB를 자유롭게 비우고 채울 수 있다.
 
-- 각자 로컬 PostgreSQL(Docker) + 공유 Supabase는 통합 테스트·데모용으로만
-- Supabase 프로젝트를 개발용/데모용 2개로 분리
-- 공유 하나로 쓰되 테스트 데이터 접두사 규칙으로 구분
+- 🚧 그래도 <u>**통합 테스트·데모용 환경을 따로 둘지**</u>는 정해야 한다. 데모 중에 누군가 자기 DB를 비우면 시연이 깨진다.
+	- 로컬 PostgreSQL(Docker)로 개발 + 원격 DB는 통합 테스트·데모용으로만
+	- 원격 DB 하나로 쓰되 데모 직전에 데이터를 고정
 
 ---
 
 ## 관련 문서
 
-- 전체 아키텍처: [architecture.md](../02-design/architecture.md)
-- 테이블 소유권: [erd.md](../02-design/erd.md)
+- 전체 아키텍처: [Architecture 문서](../02-design/architecture.md)
+- 테이블 소유권: [ERD 문서](../02-design/erd.md)
 - 프로젝트 개요: [overview.md](../01-planning/overview.md)
