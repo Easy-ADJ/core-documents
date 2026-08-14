@@ -13,7 +13,7 @@
 |---|---|---|---|
 | [core-documents](https://github.com/Easy-ADJ/core-documents) | 프로젝트 문서 전용 (이 레포) | 전원 | private |
 | [driver-payment-system](https://github.com/Easy-ADJ/driver-payment-system) | payment 서비스 | 김주엽 | public |
-| [ledger-system](https://github.com/Easy-ADJ/ledger-system) | ledger 서비스 | 이치헌 | public |
+| [driver-ledger-system](https://github.com/Easy-ADJ/driver-ledger-system) | ledger 서비스 | 이치헌 | public |
 | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) | settlement 서비스 | 허진수 | public |
 
 ---

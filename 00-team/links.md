@@ -6,7 +6,7 @@
 |---|---|---|
 | [core-documents](https://github.com/Easy-ADJ/core-documents) | 프로젝트 문서 | 전원 |
 | [driver-payment-system](https://github.com/Easy-ADJ/driver-payment-system) | 결제 서버 | 김주엽 |
-| [ledger-system](https://github.com/Easy-ADJ/ledger-system) | 원장 서버 | 이치헌 |
+| [driver-ledger-system](https://github.com/Easy-ADJ/driver-ledger-system) | 원장 서버 | 이치헌 |
 | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) | 정산 서버 | 허진수 |
 
 - <u>**진행 현황 보드**</u>: <u>**조직 레벨**</u> Project로 만들어서 3개 레포 이슈를 한 보드에서 관리 ([이유](./github-workflow.md#5-github-projects-보드))

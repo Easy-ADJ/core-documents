@@ -33,7 +33,7 @@
 | 서비스 | 담당자 | 책임 | 레포 |
 |---|---|---|---|
 | 결제 (payment) | 김주엽 | 운행 종료 시 결제 청구, 멱등 처리, 취소/환불 | [driver-payment-system](https://github.com/Easy-ADJ/driver-payment-system) |
-| 원장 (ledger) | 이치헌 | 이중기입 분개 기록, 잔액 계산, 정합성 검증 | [ledger-system](https://github.com/Easy-ADJ/ledger-system) |
+| 원장 (ledger) | 이치헌 | 이중기입 분개 기록, 잔액 계산, 정합성 검증 | [driver-ledger-system](https://github.com/Easy-ADJ/driver-ledger-system) |
 | 정산 (settlement) | 허진수 | 일 단위 집계 배치, 정산 내역서, 대사 | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) |
 
 - <u>**시스템마다 DB 인스턴스를 하나씩 둔다.**</u> 각 서버는 자기 DB에만 접속한다.
