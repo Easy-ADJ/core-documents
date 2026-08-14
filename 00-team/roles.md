@@ -6,7 +6,7 @@
 | 담당자 | 서비스 | 레포 | 소유 문서 | 소유 테이블 |
 |---|---|---|---|---|
 | 김주엽 | 결제 (payment) | [driver-payment-system](https://github.com/Easy-ADJ/driver-payment-system) | [services/payment.md](../02-design/services/payment.md) | `trips`, `payments` |
-| 이치헌 | 원장 (ledger) | [ledger-system](https://github.com/Easy-ADJ/ledger-system) | [services/ledger.md](../02-design/services/ledger.md) | `ledger_accounts`, `ledger_entries` |
+| 이치헌 | 원장 (ledger) | [driver-ledger-system](https://github.com/Easy-ADJ/driver-ledger-system) | [services/ledger.md](../02-design/services/ledger.md) | `ledger_accounts`, `ledger_entries` |
 | 허진수 | 정산 (settlement) | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) | [services/settlement.md](../02-design/services/settlement.md) | `settlement_batches`, `settlement_items` |
 
 ## 공동 소유

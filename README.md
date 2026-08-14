@@ -12,7 +12,7 @@ DB는 **AWS Aurora** 혹은 **Supabase** 서비스를 활용하여 <u>**PostgreS
 | 서비스 | 담당 | 레포 |
 |---|---|---|
 | 결제 (payment) | 김주엽 | [driver-payment-system](https://github.com/Easy-ADJ/driver-payment-system) |
-| 원장 (ledger) | 이치헌 | [ledger-system](https://github.com/Easy-ADJ/ledger-system) |
+| 원장 (ledger) | 이치헌 | [driver-ledger-system](https://github.com/Easy-ADJ/driver-ledger-system) |
 | 정산 (settlement) | 허진수 | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) |
 | 코어 문서 | 전원 | [core-documents](https://github.com/Easy-ADJ/core-documents) |
 
