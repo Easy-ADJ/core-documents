@@ -1,0 +1,46 @@
+name: 📄 문서 추가·수정
+description: 문서에 내용을 더하거나 고쳐야 할 때
+title: "[문서] "
+labels: ["docs"]
+body:
+  - type: input
+    id: target
+    attributes:
+      label: 대상 문서
+      description: 경로로 적습니다. 특정 절이 있으면 함께 적습니다.
+      placeholder: "02-design/services/settlement.md §대사"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: 무엇을
+      description: 더하거나 고칠 내용을 적습니다.
+      placeholder: 대사 실패 시 처리 방식이 🚧로 남아 있는데, 08.15 회의 결정을 반영해야 한다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: 왜
+      description: 지금 문서로는 무엇이 부족한지 적습니다.
+      placeholder: 정산 담당자가 구현을 시작해야 하는데 문서만 보고는 무엇을 만들지 알 수 없다.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        > ⚠️ 대상이 **공동 소유 문서**(`architecture.md` · `service-contracts.md` · `erd.md`)이거나
+        > **남의 서비스 문서**(`services/*.md`)라면, 합의 없이 고칠 수 없습니다. 아래에 관련자를 멘션해주세요.
+
+  - type: input
+    id: affected
+    attributes:
+      label: 합의가 필요한 사람
+      description: 공동 소유 문서·남의 서비스 문서면 필수입니다.
+      placeholder: "@김주엽 @이치헌"
+    validations:
+      required: false
