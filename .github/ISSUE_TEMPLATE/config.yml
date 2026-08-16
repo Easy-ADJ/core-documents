@@ -4,8 +4,11 @@ contact_links:
     url: https://github.com/Easy-ADJ/driver-payment-system/issues/new/choose
     about: 결제 서버의 기능·버그·계약·스키마 이슈는 결제 레포에 등록합니다.
   - name: 📒 원장 서버 이슈
-    url: https://github.com/Easy-ADJ/ledger-system/issues/new/choose
+    url: https://github.com/Easy-ADJ/driver-ledger-system/issues/new/choose
     about: 원장 서버의 기능·버그·계약·스키마 이슈는 원장 레포에 등록합니다.
   - name: 🧾 정산 서버 이슈
     url: https://github.com/Easy-ADJ/driver-settlement-system/issues/new/choose
     about: 정산 서버의 기능·버그·계약·스키마 이슈는 정산 레포에 등록합니다.
+  - name: 🖥️ 대시보드 이슈
+    url: https://github.com/Easy-ADJ/dashboard-system/issues/new/choose
+    about: 기사·관리자 대시보드의 이슈는 대시보드 레포에 등록합니다.
