@@ -30,6 +30,18 @@ IDE는 **IntelliJ IDEA**, 프로젝트는 [start.spring.io](https://start.spring
 - 레포명을 바꿔도 `settings.gradle.kts`의 `rootProject.name`은 따라가지 않는다. 함께 고쳐야 jar 이름이 맞는다.
 - 가상 스레드를 켠다 — `spring.threads.virtual.enabled=true`
 
+> 🚧 **위 표는 규칙이고, 현재 실제 코드는 결제·원장 두 곳에서 규칙과 다르다.** (2026-08-14 확인)
+>
+> | 서비스 | 실제 패키지 | 실제 메인 클래스 |
+> |---|---|---|
+> | 결제 | `com.example.eazyadj` | — |
+> | 원장 | `com.example.easyadj` | `EasyadjApplication` |
+> | 정산 | `com.example.driversettlementsystem` ✅ | `DriverSettlementSystemApplication` ✅ |
+>
+> 결제는 `eazy`, 원장은 `easy`로 **둘이 서로도 다르다.** 지금은 서비스 간 호출이 REST뿐이라 당장 깨지는 것은 없지만, 나중에 공통 모듈을 만들거나 로그·모니터링에서 패키지 prefix로 서비스를 구분할 때 걸린다.
+>
+> **패키지명을 규칙에 맞출지, 표를 실제에 맞출지는 각 소유자(김주엽·이치헌)의 결정이다.** 정하기 전까지 이 표를 근거로 남의 클래스 경로를 추측하지 않는다.
+
 ---
 
 ## 데이터베이스
