@@ -1,148 +1,160 @@
 # 🏗️ 시스템 아키텍처
 
-> <u>**이 문서가 현행 아키텍처의 단일 출처(single source of truth)다.**</u><br/>
-> [확정 기획서](../01-planning/service-spec.md)의 §4는 단일 서버 + Amazon RDS를 전제로 쓰였으므로 현행이 아니다.<br/>
-> 아키텍처에 관해 두 문서가 다르면 <u>**이 문서가 맞다.**</u>
+> 아키텍처에 관해 다른 문서와 내용이 다르면 **이 문서가 맞다.**
+> [기획서](../01-planning/service-spec.md) §4는 단일 서버 전제로 쓰여 현행이 아니다.
 
 ---
 
 ## 1. 전체 구성
 
-```text
-            [클라이언트: 승객 앱 / 관리자 콘솔]
-                             │  REST (Idempotency-Key 헤더)
-          ┌──────────────────┼──────────────────┐
-          ▼                  ▼                  ▼
-   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-   │  결제 서버    │──▶│  원장 서버   │◀──│  정산 서버   │
-   │  (payment)  │    │  (ledger)   │    │(settlement) │
-   │   김주엽     │    │   이치헌     │    │   허진수     │
-   └─────────────┘    └─────────────┘    └─────────────┘
-          │ JDBC             │ JDBC             │ JDBC
-          ▼                  ▼                  ▼
-   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-   │   DB #1     │    │   DB #2     │    │   DB #3     │
-   │ trips       │    │ ledger_     │    │ settlement_ │
-   │ payments    │    │  accounts   │    │  batches    │
-   │             │    │ ledger_     │    │ settlement_ │
-   │             │    │  entries    │    │  items      │
-   │             │    │             │    │ BATCH_*     │
-   └─────────────┘    └─────────────┘    └─────────────┘
-```
+![시스템 아키텍처](./images/System-Architecture.png)
+
+서버 3개가 각자 DB를 하나씩 갖고, 서로는 REST로만 통신한다.
 
 | 서비스 | 담당자 | 책임 | 레포 |
 |---|---|---|---|
-| 결제 (payment) | 김주엽 | 운행 종료 시 결제 청구, 멱등 처리, 취소/환불 | [driver-payment-system](https://github.com/Easy-ADJ/driver-payment-system) |
-| 원장 (ledger) | 이치헌 | 이중기입 분개 기록, 잔액 계산, 정합성 검증 | [driver-ledger-system](https://github.com/Easy-ADJ/driver-ledger-system) |
-| 정산 (settlement) | 허진수 | 일 단위 집계 배치, 정산 내역서, 대사 | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) |
+| 결제 (payment) | 김주엽 | 결제 청구, 멱등 처리, 취소·환불 | [driver-payment-system](https://github.com/Easy-ADJ/driver-payment-system) |
+| 원장 (ledger) | 이치헌 | 분개 기록, 미지급금 계산, 정합성 검증 | [driver-ledger-system](https://github.com/Easy-ADJ/driver-ledger-system) |
+| 정산 (settlement) | 허진수 | 일 단위 집계 배치, 대사 | [driver-settlement-system](https://github.com/Easy-ADJ/driver-settlement-system) |
 
-- <u>**시스템마다 DB 인스턴스를 하나씩 둔다.**</u> 각 서버는 자기 DB에만 접속한다.
-- 서비스 간 통신은 <u>**동기 REST 호출**</u>이다.<br/>
-	호출 관계와 계약은 [Service Contracts 문서](./service-contracts.md) 참고.
-- 서버 간 호출 대상 주소는 <u>**환경변수로 주입**</u>한다. (하드코딩 금지)<br/>
-	변수 이름은 [dev-environment.md](../03-development/dev-environment.md) 참고.
-- 서버 3개는 <u>**AWS EC2 1대 위의 Docker 컨테이너 3개**</u>로 배포한다. 컨테이너는 나뉘어도 호스트는 하나다.
-- 클라이언트(승객 앱 · 관리자 대시보드)는 <u>**Vercel에 배포**</u>하며, 결제·정산 서버를 REST로 호출한다.<br/>
-	원장 서버는 클라이언트가 직접 호출하지 않는다.
-- 🚧 DB 제품은 미확정 — **AWS Aurora** 혹은 **Supabase**. 어느 쪽이든 <u>**3개 시스템이 같은 제품**</u>을 쓴다.
+### 서버 간 호출
+
+| 호출자 | 피호출자 | 엔드포인트 | 용도 |
+|---|---|---|---|
+| 결제 | 원장 | `POST /api/ledger/entries` | 결제 승인·취소 분개 기록 |
+| 정산 | 원장 | `GET /api/ledger/unpaid?date=` | 배치 대상 선별 (미지급 기사 목록) |
+| 정산 | 원장 | `GET /api/ledger?driver_id=` | 미지급금 합계 + 결제 건별 근거 |
+| 정산 | 원장 | `POST /api/ledger/entries` | 정산 확정 시 지급 분개 기록 |
+| 정산 | 결제 | `GET /api/payments?date=` | 대사 교차검증 |
+
+- 통신은 전부 **동기 REST**다. 실패 처리 규약은 [service-contracts.md](./service-contracts.md) 참고.
+- 호출 주소는 환경변수로 주입한다. 하드코딩 금지.
+- **원장은 아무도 호출하지 않는다.** 결제·정산 둘 다 원장에 의존하므로 원장 API가 가장 먼저 확정돼야 한다.
+
+> **운임 합계의 출처는 결제가 아니라 원장이다.**
+> 원장이 기사별 결제 합계(미지급금)를 들고 있고, 정산은 거기서 수수료 20%를 뺀다.
+> 결제 서버는 대사에서만 부른다 — 원장에서 받은 값을 원장과 비교하면 검증이 되지 않기 때문이다.
+
+### 클라이언트
+
+| 클라이언트 | 대상 | 인증 |
+|---|---|---|
+| 승객 앱 | 결제 서버 | `Idempotency-Key` 헤더 |
+| 기사·관리자 대시보드 | 원장 서버, 로그인 DB(직접 접속) | `Bearer Token` |
+
+- **React · TypeScript · Next.js · shadcn/ui · Tailwind CSS**, Vercel 배포. 로그인·회원가입은 Next.js에서 구현한다.
+- 화면은 관리자용과 기사용을 따로 만든다.
+- **대시보드는 정산 서버를 호출하지 않는다.** 필요해지면 그때 `GET /api/settlements`를 연결한다.
+
+### 데이터베이스
+
+**DB 인스턴스는 총 4개다** — 서비스마다 하나씩, 여기에 로그인 DB를 더한다.
+각 서버는 자기 DB와 로그인 DB, 두 곳에 접속한다.
+
+| DB | 접속 주체 | 담긴 테이블 |
+|---|---|---|
+| 결제 DB | 결제 서버 | `PAYMENT_ATTEMPT`, `PAYMENT`, `MONEY` |
+| 원장 DB | 원장 서버 | `LEDGER_ENTRIES` |
+| 정산 DB | 정산 서버 | `BATCHES`, `SETTLEMENTS` (+ Spring Batch 메타) |
+| 로그인 DB | 세 서버 전부 + 대시보드 | `MANAGER_ACCOUNTS`, `DRIVER_ACCOUNTS` |
+
+- 로그인 DB는 **기사 정보(이름·계좌번호)의 공유 참조처**다. 세 서버는 자기 테이블에 `driver_id`만 갖고 있어 나머지는 여기서 읽는다.
+- 별도 인스턴스이므로 **JOIN도 FK도 불가능**하다. 세 서버 모두 DataSource를 2개 두고 결과를 애플리케이션에서 합친다. ([erd.md §4](./erd.md#4-서비스-경계를-넘는-참조))
+- 보호 방식: 클라이언트는 **Supabase RLS + anon key**, 서버는 **서버별 읽기 전용 계정**(`payment_ro`·`ledger_ro`·`settlement_ro`).
+- ⚠️ 로그인 DB는 **단일 장애점**이다. 여기가 내려가면 세 서버가 동시에 기사 정보를 잃는다.
+
+컬럼 상세는 [ERD 문서](./erd.md) 참고.
 
 ---
 
 ## 2. 왜 이렇게 나눴나
 
-1. **서비스를 3개로 나눈 이유**
+**서비스를 3개로 나눈 이유** — 팀원 3명이 서로를 기다리지 않고 병렬 개발하기 위해서다. 도메인 경계가 기능 명세 단위와 일치해 책임이 겹치지 않는다.
 
-	- 팀원 3명이 서로의 코드를 기다리지 않고 병렬로 개발하기 위해서다.
-	- 도메인 경계(결제 / 원장 / 정산)가 [기획서 §3](../01-planning/service-spec.md)의 기능 명세 단위와 그대로 일치해, 담당자별로 책임이 겹치지 않는다.
+**DB까지 나눈 이유** — DB를 공유하면 서비스 경계가 규칙으로만 존재한다. 남의 테이블을 조인해도 아무도 막지 않는다. DB를 나누면 그 경계가 **물리적으로 강제된다.**
 
-2. **DB까지 나눈 이유**
+**대신 치르는 대가** — 결제와 원장을 하나의 트랜잭션으로 묶을 수 없고(3절), 경계를 넘는 FK를 걸 수 없다.
 
-	- DB를 공유하면 서비스 경계가 <u>**규칙으로만**</u> 존재한다. 남의 테이블을 조인해도 컴파일러도 DB도 막지 않는다.
-	- DB를 나누면 그 경계가 <u>**물리적으로 강제된다.**</u> 실수로 남의 테이블을 건드릴 방법이 없다.
-	- 스키마 마이그레이션 충돌, 커넥션 풀 경합, 테스트 데이터 간섭도 함께 사라진다. ([상세](../03-development/dev-environment.md))
+**로그인 DB만 공유하는 이유** — 세 서버 모두 `driver_id`만 갖고 있어 기사 이름·계좌번호를 아무도 모른다. 앞에 계정 API 서버를 세우는 것이 원칙에 맞지만 네 번째 서버와 담당자가 필요하다. 팀이 3명이고 기사 정보는 읽기 전용 참조 데이터라 직접 접속을 택했다.
 
-3. **대신 치르는 대가**
-
-	- 결제와 원장을 <u>**하나의 DB 트랜잭션으로 묶을 수 없다.**</u> 3절이 이 대가를 다룬다.
-	- 서비스 경계를 넘는 FK를 걸 수 없다. ([erd.md](./erd.md) 참고)
+> 이것은 **원칙의 예외이지 원칙의 변경이 아니다.** 업무 테이블(결제·원장·정산)의 경계는 그대로 API로만 넘는다.
 
 ---
 
 ## 3. 결제와 원장의 원자성
 
-> 🚧 <u>**미확정**</u> — 8/15 회의에서 결정한다.<br/>
-> 이 결정이 결제 서버 구현 방식을 좌우한다.
+DB가 나뉘어 결제와 원장을 하나의 트랜잭션으로 묶을 수 없다. 그래서 남는 문제는 하나다 — **결제는 성공했는데 원장 기록이 실패하면 어떻게 하는가?**
 
-[기획서 §4.4](../01-planning/service-spec.md)는 결제 생성을 이렇게 규정했다.
+**확정: 재시도 후에도 실패하면 결제도 실패 처리한다.**
 
-> `Payment` insert + `LedgerEntry`(차변/대변 2건) insert를 <u>**하나의 DB 트랜잭션**</u>으로 묶어 원자성 보장
+```
+결제 승인
+   │
+   ▼
+POST /api/ledger/entries ──성공──▶ 결제 완료
+   │
+   ├─ 5xx·타임아웃 ─▶ 지수 백오프로 2회 재시도
+   │                        ├─ 성공 ─▶ 결제 완료
+   │                        └─ 실패 ─▶ 결제도 롤백
+   │
+   └─ 4xx ─────────▶ 재시도 없이 즉시 실패
+```
 
-DB가 분리되면서 이 방식은 <u>**불가능해졌다.**</u> 결제 서버는 원장 DB에 접속할 수 없고, 원장 기록은 오직 `POST /api/ledger/entries` 호출로만 이뤄진다. HTTP 경계를 넘는 트랜잭션은 존재하지 않는다.
-
-따라서 남는 문제는 하나다.<br/>
-<u>**결제는 성공했는데 원장 기록이 실패하면 무엇을 하는가?**</u>
-
-1. **재시도**
-
-	- 결제 서버가 원장 호출을 N회 재시도한다.
-	- 원장 API가 멱등해야 한다. (같은 `transactionId`로 두 번 와도 분개 1세트만)
-
-2. **결제 롤백**
-
-	- 원장 실패 시 결제도 실패 처리한다.
-	- 단순하지만 원장 서버가 잠깐 죽으면 결제가 전부 실패한다.
-
-3. **사후 대사**
-
-	- 결제는 성공시키고, 원장 기록은 별도 큐·배치로 재시도한다.
-	- 일시적으로 원장에 빠진 건이 생기며, 정산 전 대사 배치가 이를 잡아낸다.
-
-> 어느 쪽을 택하든 <u>**결정과 근거를 이 절에 기록한다.**</u> 기록 없이 코드로만 정해지면 나머지 두 명이 알 수 없다.
+- 원장이 미지급금을 들고 있고 정산이 그 값을 쓰므로, **원장에서 누락되면 정산 금액이 곧바로 틀린다.**
+- 재시도가 실제로 일어나므로 **원장 API의 멱등성이 필수**다. `LEDGER_ENTRIES.idempotency_key` UNIQUE로 보장한다.
+- 대가는 원장이 길게 죽으면 결제가 전부 실패한다는 것이다. **결제 가용성보다 금액 정합성을 택했다.**
 
 ---
 
-## 4. 서비스 경계 ⚠️
+## 4. 서비스 경계
 
-DB를 나눴으므로 <u>**남의 테이블을 조인하는 것은 물리적으로 불가능하다.**</u> 경계를 넘는 데이터는 전부 API를 거친다.
+경계를 넘는 데이터는 전부 API를 거친다. **로그인 DB만 예외다.**
 
 | 필요한 것 | 가져오는 방법 |
 |---|---|
-| 정산이 전일 결제 내역을 알아야 함 | 결제 서버 `GET /api/payments?date=` 호출 |
-| 결제가 분개를 기록해야 함 | 원장 서버 `POST /api/ledger/entries` 호출 |
-| 정산이 기사 미지급금 잔액을 알아야 함 | 원장 서버 `GET /api/ledger/accounts/{id}/balance` 호출 |
+| 결제가 분개를 기록 | 원장 `POST /api/ledger/entries` |
+| 정산이 대상 기사를 선별 | 원장 `GET /api/ledger/unpaid?date=` |
+| 정산이 금액과 근거를 조회 | 원장 `GET /api/ledger?driver_id=` |
+| 정산이 지급 분개를 기록 | 원장 `POST /api/ledger/entries` |
+| 정산이 대사로 교차검증 | 결제 `GET /api/payments?date=` |
+| 세 서버가 기사 이름·계좌번호 조회 | ⚠️ 로그인 DB에 직접 SELECT — 유일한 예외 |
 
-<u>**대신 위험의 성격이 바뀌었다.**</u> 이제 결합점은 테이블이 아니라 <u>**API 계약**</u>이다.
+**위험의 성격이 바뀌었다.** 결합점이 테이블에서 API 계약으로 옮겨갔다.
 
-- 상대 API의 응답 필드가 바뀌면 <u>**컴파일 에러 없이 조용히**</u> 틀린 값을 받는다.
+- 상대 API의 응답 필드가 바뀌면 **컴파일 에러 없이 조용히** 틀린 값을 받는다.
 - 상대 서버가 죽으면 내 기능도 멈춘다. 타임아웃·재시도 규약이 필요한 이유다.
 
-규칙 전문과 계약 변경 절차는 [Service Contracts 문서](./service-contracts.md)에 있다.
+계약 변경 절차는 [service-contracts.md §3](./service-contracts.md#3-계약-변경-절차)에 있다.
 
 ---
 
 ## 5. 인프라
 
-| 요소 | 선택 | 비고 |
-|---|---|---|
-| DB | 🚧 미확정 — **AWS Aurora** 혹은 **Supabase** | PostgreSQL, <u>**시스템별 인스턴스 3개**</u>. 기획서 §4.3의 Amazon RDS 단일 구성을 대체 |
-| 애플리케이션 | Spring Boot 4 / Java 17 | 서비스 3개 각각 독립 실행 |
-| 정산 배치 | Spring Batch (정산 서버 내부) | 기획서 §3.3 |
-| 배포 위치 | **AWS EC2 1대 — Docker 컨테이너 3개** | 비용·시간을 고려해 3대 대신 1대로 정했다 |
-| 클라이언트 배포 | **Vercel** | 승객 앱 · 관리자 대시보드 |
-| 배치 스케줄링 | **Spring `@Scheduled`** (정산 서버 내부) | 서버가 상시 떠 있으므로 EventBridge를 둘 이유가 없다 |
-| 정산 리포트 보관 | 🚧 미확정 — S3 vs Supabase Storage | DB 제품 결정과 함께 정한다 |
+| 요소 | 선택 |
+|---|---|
+| DB | **Supabase** (PostgreSQL) — DB 4개 |
+| DB 연결 | **Supavisor session 모드** |
+| 스키마 관리 | **Flyway** — DB마다 독립 버전 |
+| 애플리케이션 | Spring Boot 4 / Java 17 |
+| 정산 배치 | Spring Batch (정산 서버 내부) |
+| 배치 스케줄링 | `@Scheduled` + 수동 실행 API |
+| 배포 위치 | **Railway** — 서비스별 인스턴스 분리, git push 배포 |
+| 클라이언트 | React · TypeScript · Next.js · shadcn/ui · Tailwind CSS |
+| 클라이언트 배포 | **Vercel** |
+| 정산 리포트 | 이번 범위 제외 — 조회 API로 대체 |
 
-> 가상 스레드(`spring.threads.virtual.enabled=true`)는 기획서 §4.3대로 3개 서비스 모두에 적용한다.<br/>
-> 서비스 간 동기 REST 호출이 늘어 I/O 대기가 오히려 많아졌으므로 근거가 더 강해졌다.
+- 가상 스레드(`spring.threads.virtual.enabled=true`)를 3개 서비스 모두에 적용한다. 서버 간 동기 호출이 많아 I/O 대기가 길다.
 
-> ⚠️ <u>**EC2 1대이므로 경합 지점이 DB가 아니라 호스트다.**</u> DB를 나눠 커넥션 경합은 사라졌지만, 컨테이너 3개가 같은 CPU·메모리를 나눠 쓴다.<br/>
-> 정산 배치가 도는 동안 결제·원장 응답이 느려질 수 있고, 인스턴스 1대가 내려가면 <u>**세 서버가 동시에 내려간다.**</u> 데모 규모에서는 감수하는 대가다.
+> ⚠️ **Supabase·Railway는 잠정 선택이다.** AWS 계정 지급이 지연돼 개발을 멈추지 않으려고 택했다.
+> 계정이 나오면 옮길지 다시 판단하므로 **제품에 종속되는 코드를 쓰지 않는다** — 접속 정보는 환경변수, 스키마는 Flyway로 관리한다.
+
+> ⚠️ **Railway는 유휴 시 인스턴스가 잠들 수 있다.** 첫 호출이 느려서 타임아웃을 연결 5초 / 응답 10초로 잡았다.
+> 데모 직전에 세 서버를 한 번씩 깨워둔다.
 
 ---
 
 ## 관련 문서
 
-- 서버 간 호출 계약: [Service Contracts 문서](./service-contracts.md)
-- 테이블 구조와 소유권: [ERD 문서](./erd.md)
-- 서버별 API 명세: [payment](./services/payment.md) / [ledger](./services/ledger.md) / [settlement](./services/settlement.md)
-- 기획 배경: [확정 기획서](../01-planning/service-spec.md)
+- 호출 계약과 공통 규약: [service-contracts.md](./service-contracts.md)
+- 테이블 구조: [erd.md](./erd.md)
+- 서버별 API: [payment](./services/payment.md) · [ledger](./services/ledger.md) · [settlement](./services/settlement.md)

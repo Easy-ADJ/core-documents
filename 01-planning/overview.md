@@ -1,33 +1,33 @@
-# 🎯 모빌리티 정산 서비스 프로젝트 개요
+# 🎯 프로젝트 개요
 
-> 자세한 사항은 다음 참조.<br/>
-> [모빌리티 정산 서비스 확정 기획서](./service-spec.md)
+**EasyADJ** — 모빌리티 정산 서비스.
+자세한 내용은 [확정 기획서](./service-spec.md) 참조.
 
-## 프로젝트명: <u>**EasyADJ**</u>
-
----
-
-## 과정 개요
+## 과정 정보
 
 | 항목 | 내용 |
 |---|---|
-| 과정 | 2026 SW 파일럿 4기 — 모빌리티팀 |
-| 대상 분야 | 모빌리티(Mobility) 백엔드 엔지니어링 |
-| 확정 기술 스택 | Java 17+ / <u>**Spring Boot 4**</u>(Spring Framework 7) |
-| 지원 자원 | AWS(Cloud Service) |
-| 팀프로젝트 일정 | - 6주차(07.27 ~ 07.31): 프로젝트 기획 + 기업설명회<br/>- 7 ~ 9주차(08.03 ~ 08.21): 프로젝트 개발<br/>- 9주차(08.18): 팀밋업<br/>- 10주차(08.25): 성과교류회 발표 |
-| 실제 개발 가용 기간 | 약 3 ~ 4주 (7 ~ 9주차) |
+| 과정 | 2026 SW 파일럿 4기 — 자바 2팀 |
+| 분야 | 모빌리티 백엔드 엔지니어링 |
+| 기술 스택 | Java 17+ / Spring Boot 4 (Spring Framework 7) |
+| 개발 기간 | 7~9주차 (08.03 ~ 08.21), 약 3주 |
+| 팀밋업 | 9주차 08.18 |
+| 최종 발표 | 10주차 08.25 (성과교류회) |
 
-- Spring Boot 4는 2025년 11월 정식 출시되었으며, Java 17을 최소 요구사항으로 유지하면서 `spring.threads.virtual.enabled=true` 한 줄로 가상 스레드(Virtual Threads)를 활성화할 수 있다.
-- I/O 대기가 잦은 블로킹 코드(HTTP 호출, DB 조회, 외부 API 연동)를 리액티브 프로그래밍 없이도 대량 동시 처리할 수 있어, "대량의 동시 연결/요청을 다뤄야 하는" 모빌리티 백엔드 문제들과 특히 잘 맞는다.
-  - [Baeldung - Spring Boot 4 & Spring Framework 7](https://www.baeldung.com/spring-boot-4-spring-framework-7)
-  - [Virtual Threads in Spring Boot 4](https://medium.com/javarevisited/virtual-threads-in-spring-boot-4-what-actually-changes-for-your-code-9b490b57f400)
+## 왜 Spring Boot 4인가
+
+Spring Boot 4는 Java 17을 최소 요구사항으로 유지하면서 `spring.threads.virtual.enabled=true` 한 줄로 **가상 스레드**를 켤 수 있다.
+
+I/O 대기가 잦은 블로킹 코드(HTTP 호출, DB 조회, 외부 API 연동)를 리액티브 전환 없이 대량 동시 처리할 수 있어, 동시 요청을 많이 다루는 모빌리티 백엔드에 잘 맞는다. **서버를 3개로 나눠 동기 REST 호출이 늘어난 지금 구조에서는 근거가 더 강해졌다.**
+
+- [Baeldung — Spring Boot 4 & Spring Framework 7](https://www.baeldung.com/spring-boot-4-spring-framework-7)
+- [Virtual Threads in Spring Boot 4](https://medium.com/javarevisited/virtual-threads-in-spring-boot-4-what-actually-changes-for-your-code-9b490b57f400)
 
 ---
 
 ## 관련 문서
 
-- 현행 아키텍처: [3개의 서버 및 데이터베이스 구성](../02-design/architecture.md)
-- 개발 환경 설정: [dev-environment.md](../03-development/dev-environment.md)
-- 후보 선정 배경: [모빌리티 백엔드 실무 문제 리스트](./archive/mobility-backend-problems.md) / [프로젝트 후보 선정](./archive/project-candidates.md)
-- 팀 규칙: [코드 컨벤션](../00-team/code-convention.md) / [Git 컨벤션](../00-team/git-convention.md) / [GitHub 협업 방식](../00-team/github-workflow.md)
+- 현행 아키텍처: [architecture.md](../02-design/architecture.md)
+- 개발 환경: [dev-environment.md](../03-development/dev-environment.md)
+- 팀 규칙: [코드 컨벤션](../00-team/code-convention.md) · [Git 컨벤션](../00-team/git-convention.md) · [GitHub 협업](../00-team/github-workflow.md)
+- 후보 선정 배경: [archive/](./archive/) (현행 아님)
