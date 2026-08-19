@@ -107,11 +107,16 @@ DB가 나뉘어 물리적 사고는 막히지만, 스키마 변경은 그 테이
 |---|---|---|
 | `batch_id` | BIGINT | PK · FK |
 | `driver_id` | BIGINT | PK — 기사 ID |
-| `ledger_id` | BIGINT | 원장 ID (원장 DB 소유, FK 불가) |
+| `ledger_id` | BIGINT | **지급 상쇄 분개**의 원장 ID (원장 DB 소유, FK 불가). 분개 기록 전에는 **NULL** |
 | `fare_total` | NUMERIC | 운임 합계 (수수료 차감 전) |
 | `fee_amount` | NUMERIC | 차감된 수수료 |
 | `amount` | NUMERIC | 지급액 |
 | `payout_status` | VARCHAR | `CONFIRMED` / `PAID` |
+
+> `ledger_id`가 `NULL`이면 **아직 지급 분개를 남기지 않았다**는 뜻이다(`CONFIRMED` 직후).
+> 값이 있으면 원장에 상쇄 분개가 기록됐다. 지급 분개 누락은 다음날 이중 정산으로 이어지므로,
+> 이 컬럼 하나로 "원장에 반영됐는가"를 확인할 수 있게 둔다. 집계에 쓴 근거 분개는 여러 건이라
+> 단일 컬럼에 담기지 않는다 — 그 답은 `GET /api/ledger?driver_id=` 응답이 준다.
 
 > Spring Batch 메타 테이블(`BATCH_JOB_INSTANCE` 등)은 정산 DB에 함께 둔다.
 
@@ -166,7 +171,7 @@ DB가 나뉘어 **경계를 넘는 FK는 걸 수 없다.** 상대 서비스의 �
 |---|---|---|
 | `LEDGER_ENTRIES.payment_id` | 결제 ID | 결제 DB |
 | `LEDGER_ENTRIES.driver_id` | 기사 ID | 로그인 DB |
-| `SETTLEMENTS.ledger_id` | 원장 ID | 원장 DB |
+| `SETTLEMENTS.ledger_id` | 지급 상쇄 분개 ID | 원장 DB |
 | `SETTLEMENTS.driver_id` | 기사 ID | 로그인 DB |
 | `PAYMENT.driver_id` | 기사 ID | 로그인 DB |
 
@@ -207,7 +212,6 @@ JOIN이 있던 자리를 API 호출이 대신한다.
 ## 5. 남은 항목
 
 - [ ] `GET /api/ledger?driver_id=` 응답에 담길 결제 건별 내역 형태 (원장 ↔ 정산 합의)
-- [ ] `SETTLEMENTS.ledger_id`를 계속 둘지 — 지급 분개의 ID를 담는 용도로 재정의할지
 - [ ] `DRIVER_ACCOUNTS.password` 제거 여부 — Supabase Auth로 옮기면 테이블에 둘 이유가 없다
 - [ ] nullable · 기본값 · 인덱스 (배치의 날짜 범위 조회, 원장 미지급금 집계)
 - [ ] 로그인 DB 장애 시 세 서버의 동작 (기사 정보 없이 진행 / 실패)
