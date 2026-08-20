@@ -119,5 +119,4 @@
 ## 남은 항목
 
 - [ ] `GET /api/ledger/unpaid` · `GET /api/ledger?driver_id=` 응답 스키마 (원장 담당자와 합의)
-- [ ] `SETTLEMENTS.ledger_id`를 계속 둘지 — 지급 분개의 ID를 담는 용도로 재정의할지
 - [ ] 지급 분개의 `idempotencyKey`를 무엇으로 만들지 (`batchId`+`driverId` 조합 등)
